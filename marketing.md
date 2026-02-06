@@ -23,7 +23,7 @@ The pages are designed to mirror the feature set defined in `features.md`.
 
 ### Core Pages
 1.  **Home (`/`)**
-    *   **Hero:** "World's leading uptime monitoring service" style value prop.
+    *   **Hero:** "Upbeat: Reliable uptime monitoring for everyone."
     *   **CTA:** "Start for Free" (Links to SPA Registration).
     *   **Social Proof:** "Trusted by X companies."
     *   **Quick Features:** Icons for HTTP, Ping, Port monitoring.

@@ -27,7 +27,7 @@ We will configure the sidebar to link to your existing research files.
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: "Server Monitor Research",
+  title: "Upbeat",
   description: "Architecture and Implementation Plans",
   themeConfig: {
     nav: [
