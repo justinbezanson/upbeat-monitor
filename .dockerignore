@@ -1,0 +1,16 @@
+# Version Control
+.git
+.gitignore
+
+# Node / Frontend (Exclude from Backend Build)
+node_modules
+web/
+marketing/
+docs/
+
+# Build Artifacts
+dist/
+bin/
+
+# Environment
+.env

@@ -1,0 +1,22 @@
+# Build Stage
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+# COPY go.sum ./ # Uncomment when dependencies are added
+RUN go mod download
+
+COPY . .
+
+# Build the binary targeting the cmd/api directory
+RUN go build -o backend-api ./cmd/api
+
+# Run Stage
+FROM alpine:latest
+
+WORKDIR /root/
+COPY --from=builder /app/backend-api .
+
+EXPOSE 8080
+CMD ["./backend-api"]
