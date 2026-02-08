@@ -21,8 +21,8 @@ curl -sSf https://atlasgo.sh | sh
 2.  Run the following command to generate a new migration file:
 
 ```bash
-# This compares schema.hcl against the migration directory
-atlas migrate diff --env local
+# Run inside the container (replace 'migration_name' with a descriptive name)
+docker compose exec api atlas migrate diff migration_name --env local
 ```
 
 3.  Review the new file created in `migrations/`.
