@@ -17,4 +17,4 @@ ENV PATH="/root/.turso:$PATH"
 COPY . .
 
 # Default command
-CMD ["go", "run", "main.go"]
+CMD ["go", "run", "cmd/api/main.go"]
