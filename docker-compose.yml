@@ -7,9 +7,9 @@ services:
       dockerfile: Dockerfile
     container_name: upbeat-api
     ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
+      - "${API_PORT}:${API_PORT}" # Use variable for port mapping
+    env_file:
+      - ./.env # Explicitly load .env file
     volumes:
       - .:/app
     working_dir: /app
@@ -19,11 +19,13 @@ services:
   # Future services based on your documentation (Uncomment when ready):
   
   # Frontend SPA (Vue)
-  # web:
-  #   image: node:20-alpine
-  #   working_dir: /app/web
-  #   volumes:
-  #     - ./web:/app/web
-  #   command: npm run dev
-  #   ports:
-  #     - "5173:5173"
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: upbeat-frontend
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    restart: unless-stopped

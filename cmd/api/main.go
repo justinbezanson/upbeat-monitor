@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	port := os.Getenv("PORT")
+	port := os.Getenv("API_PORT")
 	if port == "" {
-		port = "8080"
+		port = "8080" // Default port if not set in .env
 	}
 
 	mux := handlers.RegisterRoutes()
