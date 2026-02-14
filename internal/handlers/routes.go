@@ -2,13 +2,18 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 )
 
 // corsMiddleware adds CORS headers to responses.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		allowedOrigin := os.Getenv("FRONTEND_URL")
+		if allowedOrigin == "" {
+			allowedOrigin = "http://localhost" // Default to localhost if env var not set
+		}
 		// Allow requests from localhost (your frontend)
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost")
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
