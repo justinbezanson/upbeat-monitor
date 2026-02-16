@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 
@@ -14,9 +13,6 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// JWT secret key (should be loaded from environment variable)
-var jwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 // Claims defines the JWT claims structure
 type Claims struct {
@@ -161,7 +157,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(h.JWTSecret)
 	if err != nil {
 		log.Printf("Error generating JWT token: %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Could not generate authentication token")

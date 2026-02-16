@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log" // Added log import
 	"net/http"
 	"os"
 
@@ -12,6 +13,7 @@ import (
 type Handlers struct {
 	DB           *sql.DB
 	UserRepository repository.UserRepository
+	JWTSecret    []byte
 	// Add other dependencies here if needed, e.g., Logger
 }
 
@@ -39,10 +41,16 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 // RegisterRoutes registers the HTTP routes for the application
 func RegisterRoutes(db *sql.DB) http.Handler {
+	jwtSecret := os.Getenv("JWT_SECRET_KEY")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET_KEY environment variable is not set")
+	}
+
 	userRepo := repository.NewSQLiteUserRepository(db) // Initialize repository
 	h := &Handlers{
 		DB:           db,
 		UserRepository: userRepo,
+		JWTSecret:    []byte(jwtSecret),
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", h.Ping)
