@@ -12,7 +12,7 @@ type Response struct {
 }
 
 // Ping is a simple health check endpoint
-func Ping(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) Ping(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := Response{
 		Message: "Pong",

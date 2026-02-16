@@ -7,6 +7,12 @@ import (
 )
 
 func TestPing(t *testing.T) {
+	// Create a mock Handlers struct. Ping does not use DB or UserRepository, so we can pass nil.
+	testHandlers := &Handlers{
+		DB:           nil, // Not used by Ping
+		UserRepository: nil, // Not used by Ping
+	}
+
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 	// pass 'nil' as the third parameter.
 	req, err := http.NewRequest("GET", "/ping", nil)
@@ -16,7 +22,8 @@ func TestPing(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(Ping)
+	// Call the Ping method on our testHandlers struct.
+	handler := http.HandlerFunc(testHandlers.Ping)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
