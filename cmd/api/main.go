@@ -16,9 +16,13 @@ func main() {
 		port = "8080" // Default port if not set in .env
 	}
 
-	// Initialize database connection
-	dbPath := "local.db" // Use local.db for local development
-	db, err := database.NewDBConnection(dbPath)
+	// Determine database connection string
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "local.db" // Default to local SQLite file for development
+	}
+
+	db, err := database.NewDBConnection(databaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}

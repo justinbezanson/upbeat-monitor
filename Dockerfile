@@ -1,9 +1,16 @@
-FROM golang:1.24-alpine
+FROM golang:1.24-bullseye
 
 WORKDIR /app
 
-# Install git, curl, bash, libc6-compat, and build-base (for CGO)
-RUN apk add --no-cache git curl bash libc6-compat build-base
+# Install git, curl, bash, and build tools for CGO
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    bash \
+    gcc \
+    make \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Atlas CLI
 RUN curl -sSf https://atlasgo.sh | sh
@@ -14,6 +21,7 @@ RUN curl -sSfL https://get.tur.so/install.sh | bash
 ENV PATH="/root/.turso:$PATH"
 
 ENV CGO_ENABLED=1
+ENV CGO_LDFLAGS="-ldl"
 
 # Copy go.mod and go.sum first to leverage Docker cache for dependencies
 COPY go.mod .
