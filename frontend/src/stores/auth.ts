@@ -88,14 +88,14 @@ export const useAuthStore = defineStore('auth', () => {
         },
       });
 
-      userToken.value = null;
-      localStorage.removeItem('userToken');
       successMessage.value = 'Logged out successfully.';
       return true;
     } catch (e: any) {
       error.value = 'An unexpected error occurred during logout: ' + e.message;
       return false;
     } finally {
+      userToken.value = null; // Always clear client-side token
+      localStorage.removeItem('userToken'); // Always clear client-side token
       isLoading.value = false;
     }
   };
