@@ -1,0 +1,26 @@
+name: Frontend Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20' # Use Node.js 20, as it's common for current Vue/Vite projects
+
+    - name: Install dependencies
+      run: npm install
+      working-directory: frontend # Run npm install in the frontend directory
+
+    - name: Run frontend tests
+      run: npm run test:browser
+      working-directory: frontend # Run tests in the frontend directory
