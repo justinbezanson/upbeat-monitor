@@ -184,3 +184,8 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged in successfully", Token: tokenString, UserID: user.ID})
 }
+
+// Logout handles user logout. For JWT, this primarily involves client-side token removal.
+func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged out successfully"})
+}

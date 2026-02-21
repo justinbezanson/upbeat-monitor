@@ -368,6 +368,7 @@ func TestLoginUserNotFound(t *testing.T) {
 	err := json.NewDecoder(rrLogin.Body).Decode(&res)
 	if err != nil {
 		t.Fatalf("could not decode error response: %v", err)
+		return // Added return here
 	}
 	if res["error"] != "Invalid credentials" {
 		t.Errorf("unexpected error message: got %q want %q", res["error"], "Invalid credentials")
@@ -406,4 +407,106 @@ func TestLoginIncorrectPassword(t *testing.T) {
 	if res["error"] != "Invalid credentials" {
 		t.Errorf("unexpected error message: got %q want %q", res["error"], "Invalid credentials")
 	}
+}
+
+func TestLogout(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+	h := newTestHandlers(t, db)
+
+	// Helper to perform login and get token
+	loginAndGetToken := func(email, password string) string {
+		registerReq := RegisterRequest{Email: email, Password: "password123"}
+		reqRegister, rrRegister := sendRequest("POST", "/register", registerReq)
+		handlerRegister := http.HandlerFunc(h.Register)
+		handlerRegister.ServeHTTP(rrRegister, reqRegister)
+		if status := rrRegister.Code; status != http.StatusCreated {
+			t.Fatalf("failed to setup user for logout test: registration failed with status: %v", status)
+		}
+
+		loginReq := LoginRequest{Email: email, Password: password}
+		reqLogin, rrLogin := sendRequest("POST", "/login", loginReq)
+		handlerLogin := http.HandlerFunc(h.Login)
+		handlerLogin.ServeHTTP(rrLogin, reqLogin)
+		if status := rrLogin.Code; status != http.StatusOK {
+			t.Fatalf("failed to setup user for logout test: login failed with status: %v", status)
+		}
+
+		var res AuthResponse
+		err := json.NewDecoder(rrLogin.Body).Decode(&res)
+		if err != nil {
+			t.Fatalf("could not decode login response: %v", err)
+		}
+		return res.Token
+	}
+
+	t.Run("Successful Logout", func(t *testing.T) {
+		token := loginAndGetToken("logout@example.com", "password123")
+
+		req, rr := sendRequest("POST", "/logout", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+
+		// Create a mux to include the middleware for protected routes
+		mux := http.NewServeMux()
+		mux.Handle("/logout", h.AuthMiddleware(http.HandlerFunc(h.Logout)))
+		mux.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
+		var res AuthResponse
+		err := json.NewDecoder(rr.Body).Decode(&res)
+		if err != nil {
+			t.Fatalf("could not decode response: %v", err)
+		}
+		if res.Message != "Logged out successfully" {
+			t.Errorf("unexpected message: got %q want %q", res.Message, "Logged out successfully")
+		}
+	})
+
+	t.Run("Logout without Token", func(t *testing.T) {
+		req, rr := sendRequest("POST", "/logout", nil)
+
+		// Create a mux to include the middleware for protected routes
+		mux := http.NewServeMux()
+		mux.Handle("/logout", h.AuthMiddleware(http.HandlerFunc(h.Logout)))
+		mux.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusUnauthorized {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+
+		var res map[string]string
+		err := json.NewDecoder(rr.Body).Decode(&res)
+		if err != nil {
+			t.Fatalf("could not decode error response: %v", err)
+		}
+		if res["error"] != "Authorization header required" {
+			t.Errorf("unexpected error message: got %q want %q", res["error"], "Authorization header required")
+		}
+	})
+
+	t.Run("Logout with Invalid Token", func(t *testing.T) {
+		req, rr := sendRequest("POST", "/logout", nil)
+		req.Header.Set("Authorization", "Bearer invalid.jwt.token")
+
+		// Create a mux to include the middleware for protected routes
+		mux := http.NewServeMux()
+		mux.Handle("/logout", h.AuthMiddleware(http.HandlerFunc(h.Logout)))
+		mux.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusUnauthorized {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+		}
+
+		var res map[string]string
+		err := json.NewDecoder(rr.Body).Decode(&res)
+		if err != nil {
+			t.Fatalf("could not decode error response: %v", err)
+		}
+		if res["error"] != "Invalid token" { // Or "Invalid token claims" depending on JWT library
+			t.Errorf("unexpected error message: got %q want %q", res["error"], "Invalid token")
+		}
+	})
 }

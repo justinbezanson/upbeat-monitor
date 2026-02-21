@@ -53,9 +53,10 @@ func RegisterRoutes(db *sql.DB) http.Handler {
 		JWTSecret:    []byte(jwtSecret),
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/ping", h.Ping)
+	mux.Handle("/ping", h.AuthMiddleware(http.HandlerFunc(h.Ping)))
 	mux.HandleFunc("/register", h.Register)
 	mux.HandleFunc("/login", h.Login)
+	mux.HandleFunc("/logout", h.Logout)
 
 	// Wrap the mux with the CORS middleware
 	return corsMiddleware(mux)
