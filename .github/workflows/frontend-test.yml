@@ -18,8 +18,12 @@ jobs:
         node-version: '20' # Use Node.js 20, as it's common for current Vue/Vite projects
 
     - name: Install dependencies
-      run: npm install
+      run: npm install --frozen-lockfile
       working-directory: frontend # Run npm install in the frontend directory
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps chromium # Install Chromium and its dependencies
+      working-directory: frontend # Run in the frontend directory
 
     - name: Run frontend tests
       run: npm run test:browser
