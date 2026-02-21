@@ -9,6 +9,9 @@ The project is **Dockerized**. Development and deployment environments leverage 
 **Go Environment:**
 Go is installed and used **within the Docker containers** for the backend API. When performing operations that require the Go toolchain (e.g., `go build`, `go test`), these commands should ideally be executed inside the relevant Docker container or by building and running the Docker services.
 
+**Database Schema:**
+The canonical source of truth for the database schema is the `internal/repository/schema.hcl` file. All database structure changes should be made there.
+
 **Key Directories:**
 - `cmd/api/`: Go backend application entry point.
 - `internal/`: Internal Go packages (handlers, repository, etc.).

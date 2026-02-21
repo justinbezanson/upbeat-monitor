@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -101,14 +102,31 @@ func (h *Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate UUID for user ID
+	// Generate UUIDs for Account and User IDs
+	accountID := uuid.New().String()
 	userID := uuid.New().String()
 
+	// Create new Account
+	newAccount := &repository.Account{
+		ID:        accountID,
+		Name:      sql.NullString{String: "Default Account", Valid: true}, // Default name for now
+		Tier:      "free",
+		CreatedAt: time.Now(),
+	}
+
+	if err := h.UserRepository.CreateAccount(newAccount); err != nil {
+		log.Printf("Error creating account: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// Create new User linked to the new Account
 	newUser := &repository.User{
 		ID:           userID,
+		AccountID:    accountID,
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
-		Tier:         "free",      // Default tier
+		Role:         "owner", // Default role
 		CreatedAt:    time.Now(),
 	}
 

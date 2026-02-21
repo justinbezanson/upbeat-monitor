@@ -1,9 +1,37 @@
 schema "main" {}
 
+table "accounts" {
+  schema = schema.main
+  column "id" {
+    type = text
+    null = false
+  }
+  column "name" {
+    type = text
+    null = true
+  }
+  column "tier" {
+    type    = text
+    null    = true
+    default = "free"
+  }
+  column "created_at" {
+    type = datetime
+    null = true
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
 table "users" {
   schema = schema.main
   column "id" {
     null = false
+    type = text
+  }
+  column "account_id" {
+    null = true
     type = text
   }
   column "email" {
@@ -11,25 +39,59 @@ table "users" {
     type = text
   }
   column "password_hash" {
-    null = false
+    null = true
     type = text
   }
-  column "tier" {
-    null = false
-    type = text
-    default = "free"
+  column "role" {
+    null    = true
+    type    = text
+    default = "owner"
   }
   column "created_at" {
-    null = false
+    null = true
     type = datetime
-    default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
   }
+  foreign_key "fk_users_account" {
+    columns     = [column.account_id]
+    ref_columns = [table.accounts.column.id]
+  }
   index "idx_users_email" {
-    unique = true
+    unique  = true
     columns = [column.email]
+  }
+}
+
+table "oauth_clients" {
+  schema = schema.main
+  column "client_id" {
+    null = false
+    type = text
+  }
+  column "account_id" {
+    null = true
+    type = text
+  }
+  column "client_secret_hash" {
+    null = true
+    type = text
+  }
+  column "name" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null = true
+    type = datetime
+  }
+  primary_key {
+    columns = [column.client_id]
+  }
+  foreign_key "fk_oauth_clients_account" {
+    columns     = [column.account_id]
+    ref_columns = [table.accounts.column.id]
   }
 }
 
@@ -39,42 +101,40 @@ table "monitors" {
     null = false
     type = text
   }
-  column "user_id" {
-    null = false
+  column "account_id" {
+    null = true
+    type = text
+  }
+  column "friendly_name" {
+    null = true
+    type = text
+  }
+  column "type" {
+    null = true
     type = text
   }
   column "url" {
-    null = false
+    null = true
     type = text
   }
   column "interval_seconds" {
-    null = false
-    type = integer
-    default = 60
-  }
-  column "next_check_at" {
     null = true
-    type = datetime
+    type = integer
+  }
+  column "status" {
+    null = true
+    type = text
   }
   column "last_checked_at" {
     null = true
     type = datetime
   }
-  column "status" {
-    null = false
-    type = text
-    default = "pending"
-  }
   primary_key {
     columns = [column.id]
   }
-  foreign_key "fk_monitors_user" {
-    columns = [column.user_id]
-    ref_columns = [table.users.column.id]
-    on_delete = CASCADE
-  }
-  index "idx_monitors_next_check" {
-    columns = [column.next_check_at]
+  foreign_key "fk_monitors_account" {
+    columns     = [column.account_id]
+    ref_columns = [table.accounts.column.id]
   }
 }
 
@@ -85,31 +145,30 @@ table "checks" {
     type = text
   }
   column "monitor_id" {
-    null = false
+    null = true
     type = text
   }
-  column "status" {
-    null = false
-    type = text
-  }
-  column "latency_ms" {
-    null = false
+  column "status_code" {
+    null = true
     type = integer
   }
+  column "latency_ms" {
+    null = true
+    type = integer
+  }
+  column "success" {
+    null = true
+    type = bool
+  }
   column "created_at" {
-    null = false
+    null = true
     type = datetime
-    default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
   }
   foreign_key "fk_checks_monitor" {
-    columns = [column.monitor_id]
+    columns     = [column.monitor_id]
     ref_columns = [table.monitors.column.id]
-    on_delete = CASCADE
-  }
-  index "idx_checks_monitor_created" {
-    columns = [column.monitor_id, column.created_at]
   }
 }
