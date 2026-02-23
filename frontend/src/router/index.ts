@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '@/components/HelloWorld.vue';
+import DashboardView from '@/components/Dashboard.vue';
 import RegisterView from '@/views/RegisterView.vue';
 import LoginView from '@/views/LoginView.vue';
 import { useAuthStore } from '@/stores/auth'; // Import the auth store
@@ -8,7 +8,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: HomeView,
+    component: DashboardView,
     meta: { requiresAuth: true }, // Mark this route as protected
   },
   {
