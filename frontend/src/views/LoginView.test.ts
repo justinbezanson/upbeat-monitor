@@ -9,7 +9,10 @@ const push = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({
     push
-  })
+  }),
+  RouterLink: {
+    template: '<a><slot /></a>'
+  }
 }))
 
 describe('LoginView', () => {
@@ -19,11 +22,17 @@ describe('LoginView', () => {
   })
 
   test('renders login form', async () => {
-    const { getByLabelText, getByRole } = render(LoginView)
+    const { getByLabelText, getByRole } = render(LoginView, {
+        global: {
+            stubs: {
+                'router-link': true
+            }
+        }
+    })
 
-    await expect.element(getByLabelText('Email:')).toBeInTheDocument()
-    await expect.element(getByLabelText('Password:')).toBeInTheDocument()
-    await expect.element(getByRole('button', { name: 'Login' })).toBeInTheDocument()
+    await expect.element(getByLabelText('Email address')).toBeInTheDocument()
+    await expect.element(getByLabelText('Password')).toBeInTheDocument()
+    await expect.element(getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
   })
 
   test('calls authStore.login and redirects on success', async () => {
@@ -31,11 +40,17 @@ describe('LoginView', () => {
     // Mock login to succeed
     vi.spyOn(authStore, 'login').mockResolvedValue(true)
 
-    const { getByLabelText, getByRole } = render(LoginView)
+    const { getByLabelText, getByRole } = render(LoginView, {
+        global: {
+            stubs: {
+                'router-link': true
+            }
+        }
+    })
 
-    const emailInput = getByLabelText('Email:')
-    const passwordInput = getByLabelText('Password:')
-    const submitButton = getByRole('button', { name: 'Login' })
+    const emailInput = getByLabelText('Email address')
+    const passwordInput = getByLabelText('Password')
+    const submitButton = getByRole('button', { name: 'Sign in' })
 
     await emailInput.fill('test@example.com')
     await passwordInput.fill('password123')
@@ -50,11 +65,17 @@ describe('LoginView', () => {
     vi.spyOn(authStore, 'login').mockResolvedValue(false)
     authStore.error = 'Invalid credentials'
 
-    const { getByText, getByRole, getByLabelText } = render(LoginView)
+    const { getByText, getByRole, getByLabelText } = render(LoginView, {
+        global: {
+            stubs: {
+                'router-link': true
+            }
+        }
+    })
 
-    await getByLabelText('Email:').fill('test@example.com')
-    await getByLabelText('Password:').fill('wrong')
-    await getByRole('button', { name: 'Login' }).click()
+    await getByLabelText('Email address').fill('test@example.com')
+    await getByLabelText('Password').fill('wrong')
+    await getByRole('button', { name: 'Sign in' }).click()
 
     await expect.element(getByText('Invalid credentials')).toBeInTheDocument()
   })

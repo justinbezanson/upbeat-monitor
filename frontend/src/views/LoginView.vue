@@ -1,79 +1,98 @@
 <template>
-  <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
-    <form @submit.prevent="handleLogin">
-      <div class="mb-4">
-        <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-        <Input
-          type="email"
-          id="email"
-          v-model="email"
-          required
-        />
-      </div>
-      <div class="mb-6">
-        <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
-        <Input
-          type="password"
-          id="password"
-          v-model="password"
-          required
-        />
-      </div>
-      <div v-if="authStore.error" class="text-red-500 mb-4 text-center">
-        {{ authStore.error }}
-      </div>
-      <div class="flex items-center justify-between">
-        <Button
-          type="submit"
-          class="w-full"
-          :disabled="authStore.isLoading"
-        >
-          {{ authStore.isLoading ? 'Logging in...' : 'Login' }}
-        </Button>
-      </div>
-    </form>
+  <div class="flex min-h-screen flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-gray-900 w-full">
+    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+      <img class="mx-auto h-10 w-auto" src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company" />
+      <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">Sign in to your account</h2>
+    </div>
+
+    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+      <form class="space-y-6" @submit.prevent="handleLogin">
+        <div>
+          <label for="email" class="block text-sm/6 font-medium text-gray-100">Email address</label>
+          <div class="mt-2">
+            <Input 
+              type="email" 
+              name="email" 
+              id="email" 
+              autocomplete="email" 
+              required 
+              v-model="email"
+              class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" 
+            />
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between">
+            <label for="password" class="block text-sm/6 font-medium text-gray-100">Password</label>
+            <div class="text-sm">
+              <a href="#" class="font-semibold text-indigo-400 hover:text-indigo-300">Forgot password?</a>
+            </div>
+          </div>
+          <div class="mt-2">
+            <Input 
+              type="password" 
+              name="password" 
+              id="password" 
+              autocomplete="current-password" 
+              required 
+              v-model="password"
+              class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" 
+            />
+          </div>
+        </div>
+
+        <div v-if="authStore.error" class="text-red-500 text-sm text-center">
+          {{ authStore.error }}
+        </div>
+
+        <div>
+          <Button 
+            type="submit" 
+            :disabled="authStore.isLoading"
+            class="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          >
+            {{ authStore.isLoading ? 'Signing in...' : 'Sign in' }}
+          </Button>
+        </div>
+      </form>
+
+      <p class="mt-10 text-center text-sm/6 text-gray-400">
+        Not a member?
+        {{ ' ' }}
+        <router-link to="/register" class="font-semibold text-indigo-400 hover:text-indigo-300">Register here</router-link>
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useAuthStore } from '@/stores/auth'; // Import the auth store
-
-console.log('LoginView component is being rendered.'); // Debug statement
 
 const email = ref('');
 const password = ref('');
 const router = useRouter();
-const authStore = useAuthStore(); // Use the auth store
+const authStore = useAuthStore();
 
 const handleLogin = async () => {
   const success = await authStore.login(email.value, password.value);
   if (success) {
-    // Redirect to a dashboard or home page after successful login
-    router.push('/'); // Or '/dashboard' once it's created
+    router.push('/');
   }
 };
 
-// Clear form fields on successful login (if desired)
 watch(() => authStore.userToken, (newValue) => {
   if (newValue) {
     email.value = '';
     password.value = '';
-  }
-});
-
-// Clear error message if successful login
-watch(() => authStore.userToken, (newValue) => {
-  if (newValue) {
     authStore.error = null;
   }
 });
 </script>
 
 <style scoped>
-/* You can add component-specific styles here if needed */
 </style>
