@@ -25,7 +25,7 @@ const handleLogout = async () => {
       <Button @click="handleLogout" variant="ghost" class="text-white hover:text-gray-300">Logout</Button>
     </template>
   </nav>
-  <div class="flex flex-col items-center justify-center min-h-screen p-8">
+  <div class="flex flex-col items-center justify-center min-h-screen">
     <router-view />
   </div>
 </template>

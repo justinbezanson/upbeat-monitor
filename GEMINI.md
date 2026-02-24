@@ -21,3 +21,6 @@ The canonical source of truth for the database schema is the `internal/repositor
 - `frontend/`: Vue.js single-page application.
 - `Dockerfile`, `Dockerfile.backend`, `Dockerfile.frontend`: Docker build definitions.
 - `docker-compose.yml`: Defines multi-service Docker application.
+
+**Frontend Testing:**
+Browser tests for the frontend can be run using `npm run test:browser` within the `frontend/` directory.

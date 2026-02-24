@@ -9,7 +9,10 @@ const push = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({
     push
-  })
+  }),
+  RouterLink: {
+    template: '<a><slot /></a>'
+  }
 }))
 
 describe('RegisterView', () => {
@@ -19,10 +22,16 @@ describe('RegisterView', () => {
   })
 
   test('renders register form', async () => {
-    const { getByLabelText, getByRole } = render(RegisterView)
+    const { getByLabelText, getByRole } = render(RegisterView, {
+      global: {
+        stubs: {
+          'router-link': true
+        }
+      }
+    })
 
-    await expect.element(getByLabelText('Email:')).toBeInTheDocument()
-    await expect.element(getByLabelText('Password:')).toBeInTheDocument()
+    await expect.element(getByLabelText('Email address')).toBeInTheDocument()
+    await expect.element(getByLabelText('Password')).toBeInTheDocument()
     await expect.element(getByRole('button', { name: 'Register' })).toBeInTheDocument()
   })
 
@@ -30,10 +39,16 @@ describe('RegisterView', () => {
     const authStore = useAuthStore()
     vi.spyOn(authStore, 'register').mockResolvedValue(true)
 
-    const { getByLabelText, getByRole } = render(RegisterView)
+    const { getByLabelText, getByRole } = render(RegisterView, {
+      global: {
+        stubs: {
+          'router-link': true
+        }
+      }
+    })
 
-    await getByLabelText('Email:').fill('newuser@example.com')
-    await getByLabelText('Password:').fill('password123')
+    await getByLabelText('Email address').fill('newuser@example.com')
+    await getByLabelText('Password').fill('password123')
     await getByRole('button', { name: 'Register' }).click()
 
     expect(authStore.register).toHaveBeenCalledWith('newuser@example.com', 'password123')
@@ -47,10 +62,16 @@ describe('RegisterView', () => {
         return true
     })
 
-    const { getByText, getByRole, getByLabelText } = render(RegisterView)
+    const { getByText, getByRole, getByLabelText } = render(RegisterView, {
+      global: {
+        stubs: {
+          'router-link': true
+        }
+      }
+    })
 
-    await getByLabelText('Email:').fill('newuser@example.com')
-    await getByLabelText('Password:').fill('password123')
+    await getByLabelText('Email address').fill('newuser@example.com')
+    await getByLabelText('Password').fill('password123')
     await getByRole('button', { name: 'Register' }).click()
 
     await expect.element(getByText('Registration successful!')).toBeInTheDocument()
@@ -61,10 +82,16 @@ describe('RegisterView', () => {
     vi.spyOn(authStore, 'register').mockResolvedValue(false)
     authStore.error = 'User already exists'
 
-    const { getByText, getByRole, getByLabelText } = render(RegisterView)
+    const { getByText, getByRole, getByLabelText } = render(RegisterView, {
+      global: {
+        stubs: {
+          'router-link': true
+        }
+      }
+    })
 
-    await getByLabelText('Email:').fill('existing@example.com')
-    await getByLabelText('Password:').fill('password123')
+    await getByLabelText('Email address').fill('existing@example.com')
+    await getByLabelText('Password').fill('password123')
     await getByRole('button', { name: 'Register' }).click()
 
     await expect.element(getByText('User already exists')).toBeInTheDocument()
