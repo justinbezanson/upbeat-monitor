@@ -14,7 +14,10 @@ type Handlers struct {
 	DB           *sql.DB
 	UserRepository repository.UserRepository
 	JWTSecret    []byte
-	// Add other dependencies here if needed, e.g., Logger
+	SMTPAddress  string
+	SMTPPort     string
+	SMTPUsername string
+	SMTPPassword string
 }
 
 // corsMiddleware adds CORS headers to responses.
@@ -48,15 +51,21 @@ func RegisterRoutes(db *sql.DB) http.Handler {
 
 	userRepo := repository.NewSQLiteUserRepository(db) // Initialize repository
 	h := &Handlers{
-		DB:           db,
+		DB:             db,
 		UserRepository: userRepo,
-		JWTSecret:    []byte(jwtSecret),
+		JWTSecret:      []byte(jwtSecret),
+		SMTPAddress:    os.Getenv("SMTP_ADDRESS"),
+		SMTPPort:       os.Getenv("SMTP_PORT"),
+		SMTPUsername:   os.Getenv("SMTP_USERNAME"),
+		SMTPPassword:   os.Getenv("SMTP_PASSWORD"),
 	}
 	mux := http.NewServeMux()
 	mux.Handle("/ping", h.AuthMiddleware(http.HandlerFunc(h.Ping)))
 	mux.HandleFunc("/register", h.Register)
 	mux.HandleFunc("/login", h.Login)
 	mux.HandleFunc("/logout", h.Logout)
+	mux.HandleFunc("/forgot-password", h.ForgotPassword)
+	mux.HandleFunc("/reset-password", h.ResetPassword)
 
 	// Wrap the mux with the CORS middleware
 	return corsMiddleware(mux)

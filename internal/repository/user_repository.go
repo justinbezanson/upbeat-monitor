@@ -25,12 +25,27 @@ type User struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
+// PasswordResetToken represents a token used to reset a user's password.
+type PasswordResetToken struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	TokenHash string    `json:"token_hash"`
+	ExpiresAt time.Time `json:"expires_at"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // UserRepository defines the interface for user and account data operations.
 type UserRepository interface {
 	CreateAccount(account *Account) error
 	CreateUser(user *User) error
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id string) (*User, error)
+	UpdateUserPassword(userID string, passwordHash string) error
+
+	CreatePasswordResetToken(token *PasswordResetToken) error
+	GetPasswordResetToken(tokenHash string) (*PasswordResetToken, error)
+	DeletePasswordResetTokensByUserID(userID string) error
+	DeletePasswordResetToken(id string) error
 }
 
 // SQLiteUserRepository implements UserRepository for a SQLite database.
@@ -109,4 +124,67 @@ func (r *SQLiteUserRepository) GetUserByID(id string) (*User, error) {
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 	return user, nil
+}
+
+// UpdateUserPassword updates a user's password hash.
+func (r *SQLiteUserRepository) UpdateUserPassword(userID string, passwordHash string) error {
+	const query = `UPDATE users SET password_hash = ? WHERE id = ?`
+	_, err := r.db.Exec(query, passwordHash, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user password: %w", err)
+	}
+	return nil
+}
+
+// CreatePasswordResetToken inserts a new password reset token into the database.
+func (r *SQLiteUserRepository) CreatePasswordResetToken(token *PasswordResetToken) error {
+	const query = `
+		INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at, created_at)
+		VALUES (?, ?, ?, ?, ?)
+	`
+	_, err := r.db.Exec(query, token.ID, token.UserID, token.TokenHash, token.ExpiresAt, token.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to create password reset token: %w", err)
+	}
+	return nil
+}
+
+// GetPasswordResetToken retrieves a password reset token by its hash.
+func (r *SQLiteUserRepository) GetPasswordResetToken(tokenHash string) (*PasswordResetToken, error) {
+	const query = `
+		SELECT id, user_id, token_hash, expires_at, created_at
+		FROM password_reset_tokens
+		WHERE token_hash = ?
+	`
+	token := &PasswordResetToken{}
+	err := r.db.QueryRow(query, tokenHash).Scan(
+		&token.ID, &token.UserID, &token.TokenHash, &token.ExpiresAt, &token.CreatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Token not found
+		}
+		return nil, fmt.Errorf("failed to get password reset token: %w", err)
+	}
+	return token, nil
+}
+
+// DeletePasswordResetTokensByUserID deletes all password reset tokens for a user.
+func (r *SQLiteUserRepository) DeletePasswordResetTokensByUserID(userID string) error {
+	const query = `DELETE FROM password_reset_tokens WHERE user_id = ?`
+	_, err := r.db.Exec(query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete password reset tokens for user: %w", err)
+	}
+	return nil
+}
+
+// DeletePasswordResetToken deletes a password reset token by its ID.
+func (r *SQLiteUserRepository) DeletePasswordResetToken(id string) error {
+	const query = `DELETE FROM password_reset_tokens WHERE id = ?`
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete password reset token: %w", err)
+	}
+	return nil
 }

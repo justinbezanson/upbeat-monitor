@@ -1,10 +1,15 @@
 package handlers
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"net/smtp"
+	"os"
 	"regexp"
 	"time"
 
@@ -38,6 +43,17 @@ type AuthResponse struct {
 	Message string `json:"message"`
 	Token   string `json:"token,omitempty"`
 	UserID  string `json:"user_id,omitempty"`
+}
+
+// ForgotPasswordRequest represents the request body for password reset request
+type ForgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+// ResetPasswordRequest represents the request body for resetting password
+type ResetPasswordRequest struct {
+	Token    string `json:"token"`
+	Password string `json:"password"`
 }
 
 // respondWithJSON sends a JSON response.
@@ -188,4 +204,143 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 // Logout handles user logout. For JWT, this primarily involves client-side token removal.
 func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged out successfully"})
+}
+
+// ForgotPassword handles the request to send a password reset email.
+func (h *Handlers) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		respondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req ForgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	user, err := h.UserRepository.GetUserByEmail(req.Email)
+	if err != nil {
+		log.Printf("Error retrieving user: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// We don't want to leak if a user exists or not, so we always return OK.
+	if user == nil {
+		respondWithJSON(w, http.StatusOK, map[string]string{"message": "If an account with that email exists, a password reset link has been sent."})
+		return
+	}
+
+	// Generate a random token
+	token := uuid.New().String()
+	hash := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	// Create reset token in DB
+	resetToken := &repository.PasswordResetToken{
+		ID:        uuid.New().String(),
+		UserID:    user.ID,
+		TokenHash: tokenHash,
+		ExpiresAt: time.Now().Add(1 * time.Hour), // Token expires in 1 hour
+		CreatedAt: time.Now(),
+	}
+
+	// Delete any existing tokens for this user first
+	if err := h.UserRepository.DeletePasswordResetTokensByUserID(user.ID); err != nil {
+		log.Printf("Error deleting existing reset tokens: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	if err := h.UserRepository.CreatePasswordResetToken(resetToken); err != nil {
+		log.Printf("Error creating reset token: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// Send email
+	if err := h.sendResetEmail(user.Email, token); err != nil {
+		log.Printf("Error sending reset email: %v", err)
+		// We still return OK to the user to avoid leaking existence, but this is a failure.
+		// In a real system, you might want to handle this more robustly.
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "If an account with that email exists, a password reset link has been sent."})
+}
+
+// ResetPassword handles the password reset using the token.
+func (h *Handlers) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		respondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if len(req.Password) < 8 {
+		respondWithError(w, http.StatusBadRequest, "Password must be at least 8 characters long")
+		return
+	}
+
+	hash := sha256.Sum256([]byte(req.Token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	token, err := h.UserRepository.GetPasswordResetToken(tokenHash)
+	if err != nil {
+		log.Printf("Error retrieving reset token: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	if token == nil || token.ExpiresAt.Before(time.Now()) {
+		respondWithError(w, http.StatusBadRequest, "Invalid or expired reset token")
+		return
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Error hashing password: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// Update user password
+	if err := h.UserRepository.UpdateUserPassword(token.UserID, string(hashedPassword)); err != nil {
+		log.Printf("Error updating password: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// Delete the used token
+	if err := h.UserRepository.DeletePasswordResetToken(token.ID); err != nil {
+		log.Printf("Error deleting used reset token: %v", err)
+		// Not fatal, but good to clean up
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Password has been successfully reset."})
+}
+
+func (h *Handlers) sendResetEmail(to, token string) error {
+	auth := smtp.PlainAuth("", h.SMTPUsername, h.SMTPPassword, h.SMTPAddress)
+
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		frontendURL = "http://localhost"
+	}
+	resetURL := fmt.Sprintf("%s/reset-password?token=%s", frontendURL, token)
+
+	msg := []byte("To: " + to + "\r\n" +
+		"Subject: Password Reset Request\r\n" +
+		"\r\n" +
+		"Please use the following link to reset your password:\r\n" +
+		resetURL + "\r\n")
+
+	addr := fmt.Sprintf("%s:%s", h.SMTPAddress, h.SMTPPort)
+	return smtp.SendMail(addr, auth, h.SMTPUsername, []string{to}, msg)
 }

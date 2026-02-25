@@ -172,3 +172,38 @@ table "checks" {
     ref_columns = [table.monitors.column.id]
   }
 }
+
+table "password_reset_tokens" {
+  schema = schema.main
+  column "id" {
+    null = false
+    type = text
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "token_hash" {
+    null = false
+    type = text
+  }
+  column "expires_at" {
+    null = false
+    type = datetime
+  }
+  column "created_at" {
+    null = false
+    type = datetime
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_password_reset_tokens_user" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+  }
+  index "idx_password_reset_tokens_token_hash" {
+    unique  = true
+    columns = [column.token_hash]
+  }
+}
