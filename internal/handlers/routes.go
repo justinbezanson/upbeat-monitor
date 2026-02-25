@@ -18,6 +18,7 @@ type Handlers struct {
 	SMTPPort     string
 	SMTPUsername string
 	SMTPPassword string
+	SMTPFrom     string
 }
 
 // corsMiddleware adds CORS headers to responses.
@@ -58,6 +59,7 @@ func RegisterRoutes(db *sql.DB) http.Handler {
 		SMTPPort:       os.Getenv("SMTP_PORT"),
 		SMTPUsername:   os.Getenv("SMTP_USERNAME"),
 		SMTPPassword:   os.Getenv("SMTP_PASSWORD"),
+		SMTPFrom:       os.Getenv("SMTP_FROM"),
 	}
 	mux := http.NewServeMux()
 	mux.Handle("/ping", h.AuthMiddleware(http.HandlerFunc(h.Ping)))

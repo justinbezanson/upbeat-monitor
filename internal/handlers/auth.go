@@ -335,12 +335,18 @@ func (h *Handlers) sendResetEmail(to, token string) error {
 	}
 	resetURL := fmt.Sprintf("%s/reset-password?token=%s", frontendURL, token)
 
+	from := h.SMTPFrom
+	if from == "" {
+		from = "noreply@upbeat-monitor.com"
+	}
+
 	msg := []byte("To: " + to + "\r\n" +
+		"From: " + from + "\r\n" +
 		"Subject: Password Reset Request\r\n" +
 		"\r\n" +
 		"Please use the following link to reset your password:\r\n" +
 		resetURL + "\r\n")
 
 	addr := fmt.Sprintf("%s:%s", h.SMTPAddress, h.SMTPPort)
-	return smtp.SendMail(addr, auth, h.SMTPUsername, []string{to}, msg)
+	return smtp.SendMail(addr, auth, from, []string{to}, msg)
 }
