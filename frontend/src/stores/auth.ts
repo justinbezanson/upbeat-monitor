@@ -95,19 +95,84 @@ export const useAuthStore = defineStore('auth', () => {
       return false;
     } finally {
       userToken.value = null; // Always clear client-side token
-      localStorage.removeItem('userToken'); // Always clear client-side token
-      isLoading.value = false;
-    }
-  };
-
-  return {
-    isLoading,
-    error,
-    successMessage,
-    userToken,
-    isAuthenticated, // Expose isAuthenticated
-    register,
-    login,
-    logout, // Expose logout action
-  };
-});
+            localStorage.removeItem('userToken'); // Always clear client-side token
+            isLoading.value = false;
+          }
+        };
+      
+        const forgotPassword = async (email: string) => {
+          isLoading.value = true;
+          error.value = null;
+          successMessage.value = null;
+      
+          try {
+            const response = await fetch('/api/forgot-password', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email }),
+            });
+      
+            const data = await response.json();
+      
+            if (response.ok) {
+              successMessage.value = data.message;
+              return true;
+            } else {
+              error.value = data.error || 'Failed to send reset link.';
+              return false;
+            }
+          } catch (e: any) {
+            error.value = 'An unexpected error occurred: ' + e.message;
+            return false;
+          } finally {
+            isLoading.value = false;
+          }
+        };
+      
+        const resetPassword = async (token: string, password: string) => {
+          isLoading.value = true;
+          error.value = null;
+          successMessage.value = null;
+      
+          try {
+            const response = await fetch('/api/reset-password', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ token, password }),
+            });
+      
+            const data = await response.json();
+      
+            if (response.ok) {
+              successMessage.value = data.message;
+              return true;
+            } else {
+              error.value = data.error || 'Failed to reset password.';
+              return false;
+            }
+          } catch (e: any) {
+            error.value = 'An unexpected error occurred: ' + e.message;
+            return false;
+          } finally {
+            isLoading.value = false;
+          }
+        };
+      
+        return {
+          isLoading,
+          error,
+          successMessage,
+          userToken,
+          isAuthenticated, // Expose isAuthenticated
+          register,
+          login,
+          logout, // Expose logout action
+          forgotPassword,
+          resetPassword,
+        };
+      });
+      
