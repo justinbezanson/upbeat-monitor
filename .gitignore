@@ -1,0 +1,19 @@
+# Environments
+.env
+*.env.local
+*.env.*.local
+
+# Database
+local.db
+local.db-journal
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+bin/
+
+# OS files
+.DS_Store
+Thumbs.db
