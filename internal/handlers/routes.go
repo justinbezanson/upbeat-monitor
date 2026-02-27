@@ -24,12 +24,20 @@ type Handlers struct {
 // corsMiddleware adds CORS headers to responses.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		allowedOrigin := os.Getenv("FRONTEND_URL")
-		if allowedOrigin == "" {
-			allowedOrigin = "http://localhost" // Default to localhost if env var not set
+		origin := r.Header.Get("Origin")
+		frontendURL := os.Getenv("FRONTEND_URL")
+		if frontendURL == "" {
+			frontendURL = "http://localhost"
 		}
-		// Allow requests from localhost (your frontend)
-		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+
+		// Allow configured frontend URL and the Vite dev port
+		if origin == frontendURL || origin == "http://localhost:5173" || origin == "http://127.0.0.1:5173" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else if origin == "" {
+			// If no origin header (e.g. same-origin or non-browser request), still allow
+			w.Header().Set("Access-Control-Allow-Origin", frontendURL)
+		}
+		
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
