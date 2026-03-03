@@ -27,12 +27,12 @@ const handleLogout = async () => {
     </template>
   </nav>
 -->
-  <div v-if="authStore.isAuthenticated" class="grid grid-cols-[250px_1fr_250px] min-h-screen">
+  <div v-if="authStore.isAuthenticated" class="grid grid-cols-[250px_1fr_250px] min-h-screen bg-gray-900">
 
-    <div class="border-r border-slate-500 p-4">
+    <div class="p-4 bg-gray-800">
       <h2 class="font-bold">Left Menu</h2>
       <p>
-        <Button @click="handleLogout" variant="ghost" class="text-white hover:text-gray-300">Logout</Button>
+        <Button @click="handleLogout" variant="ghost" class="bg-sky-600 text-sky-400 hover:bg-sky-700">Logout</Button>
       </p>
     </div>
 
@@ -40,9 +40,9 @@ const handleLogout = async () => {
       <router-view />
     </div>
 
-    <div class="border-l border-slate-500 p-4">
+    <div class="p-4">
       <h3 class="font-bold">Column 3 (1/4)</h3>
-      <p>This content is in the final quarter-width column.</p>
+      <div class="bg-slate-800 text-gray-400 p-4 mt-4 rounded">This content is in the final quarter-width column.</div>
     </div>
 
   </div>
