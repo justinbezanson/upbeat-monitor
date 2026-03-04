@@ -3,6 +3,17 @@ import { useAuthStore } from '@/stores/auth'; // Import the auth store
 import { useRouter } from 'vue-router';
 import { Button } from '@/components/ui/button'; // Import Button for logout
 
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu'
+
+import { Settings, LogOut } from 'lucide-vue-next'; 
+
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -15,25 +26,40 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <!-- 
-  <nav class="zoom-out-150p-4 bg-gray-800 text-white flex justify-center space-x-4">
-    <router-link to="/" class="hover:text-gray-300">Home</router-link>
-    <template v-if="!authStore.isAuthenticated">
-      <router-link to="/register" class="hover:text-gray-300">Register</router-link>
-      <router-link to="/login" class="hover:text-gray-300">Login</router-link>
-    </template>
-    <template v-else>
-      <Button @click="handleLogout" variant="ghost" class="text-white hover:text-gray-300">Logout</Button>
-    </template>
-  </nav>
--->
   <div v-if="authStore.isAuthenticated" class="grid grid-cols-[250px_1fr_250px] min-h-screen bg-gray-900">
 
     <div class="p-4 bg-gray-800">
-      <h2 class="font-bold">Left Menu</h2>
-      <p>
-        <Button @click="handleLogout" variant="ghost" class="bg-sky-600 text-sky-400 hover:bg-sky-700">Logout</Button>
-      </p>
+      <h2 class="font-bold text-white mb-4">Left Menu</h2>
+      <div class="flex flex-col gap-2">
+        <Button @click="handleLogout" variant="ghost" class="bg-sky-600 text-sky-400 hover:bg-sky-700 justify-start w-full">Logout</Button>
+        <NavigationMenu :disableHoverTrigger="true">
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>With Icon</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul class="grid w-[200px] gap-1 p-2 bg-popover rounded-md">
+                  <li>
+                    <NavigationMenuLink as-child>
+                      <a href="#" class="flex items-center gap-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors">
+                        <Settings class="size-4" />
+                        <span>Settings</span>
+                      </a>
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink as-child>
+                      <a href="#" class="flex items-center gap-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors">
+                        <LogOut class="size-4" />
+                        <span>Logout</span>
+                      </a>
+                    </NavigationMenuLink>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
     </div>
 
     <div class="p-4">
