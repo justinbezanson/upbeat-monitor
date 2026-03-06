@@ -4,13 +4,11 @@ import { useRouter } from 'vue-router';
 import { Button } from '@/components/ui/button'; // Import Button for logout
 
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import { Settings, LogOut } from 'lucide-vue-next'; 
 
@@ -28,37 +26,25 @@ const handleLogout = async () => {
 <template>
   <div v-if="authStore.isAuthenticated" class="grid grid-cols-[250px_1fr_250px] min-h-screen bg-gray-900">
 
-    <div class="p-4 bg-gray-800">
+    <div class="flex flex-col p-4 bg-gray-800">
       <h2 class="font-bold text-white mb-4">Left Menu</h2>
-      <div class="flex flex-col gap-2">
-        <Button @click="handleLogout" variant="ghost" class="bg-sky-600 text-sky-400 hover:bg-sky-700 justify-start w-full">Logout</Button>
-        <NavigationMenu :disableHoverTrigger="true">
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>With Icon</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul class="grid w-[200px] gap-1 p-2 bg-popover rounded-md">
-                  <li>
-                    <NavigationMenuLink as-child>
-                      <a href="#" class="flex items-center gap-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors">
-                        <Settings class="size-4" />
-                        <span>Settings</span>
-                      </a>
-                    </NavigationMenuLink>
-                  </li>
-                  <li>
-                    <NavigationMenuLink as-child>
-                      <a href="#" class="flex items-center gap-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors">
-                        <LogOut class="size-4" />
-                        <span>Logout</span>
-                      </a>
-                    </NavigationMenuLink>
-                  </li>
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+      <div class="justify-start w-full text-gray-400">Content at the top</div>
+      <div class="mt-auto">
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="ghost" class="w-full justify-start bg-white">With Icon</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" class="w-[218px]">
+            <DropdownMenuItem class="cursor-pointer">
+              <Settings class="mr-2 size-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="handleLogout" class="cursor-pointer">
+              <LogOut class="mr-2 size-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
 
@@ -80,4 +66,3 @@ const handleLogout = async () => {
 <style scoped>
 /* Scoped styles if any */
 </style>
-

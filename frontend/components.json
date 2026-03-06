@@ -1,21 +1,18 @@
 {
-  "$schema": "https://shadcn-vue.com/schema.json",
-  "style": "new-york",
+  "$schema": "https://radix.shadcn-vue.com/schema.json",
+  "style": "default",
   "typescript": true,
+  "tsConfigPath": "./tsconfig.json",
   "tailwind": {
-    "config": "tailwind.config.cjs",
-    "css": "src/style.css",
-    "baseColor": "stone",
+    "config": "tailwind.config.js",
+    "css": "src/assets/index.css",
+    "baseColor": "gray",
     "cssVariables": true,
     "prefix": ""
   },
-  "iconLibrary": "lucide",
+  "framework": "vite",
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "composables": "@/composables"
-  },
-  "registries": {}
+    "utils": "@/lib/utils"
+  }
 }
