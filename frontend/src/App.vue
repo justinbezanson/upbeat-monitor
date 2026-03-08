@@ -2,6 +2,7 @@
 import { useAuthStore } from '@/stores/auth'; // Import the auth store
 import { useRouter } from 'vue-router';
 import { Button } from '@/components/ui/button'; // Import Button for logout
+import { onMounted } from 'vue'; // Import onMounted
 
 import {
   DropdownMenu,
@@ -15,6 +16,10 @@ import { Settings, LogOut } from 'lucide-vue-next';
 const authStore = useAuthStore();
 const router = useRouter();
 
+onMounted(async () => {
+  await authStore.initializeAuth();
+});
+
 const handleLogout = async () => {
   const success = await authStore.logout();
   if (success) {
@@ -24,7 +29,10 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div v-if="authStore.isAuthenticated" class="grid grid-cols-[250px_1fr_250px] min-h-screen bg-gray-900">
+  <div v-if="!authStore.isInitialized" class="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+    <div class="animate-pulse">Loading...</div>
+  </div>
+  <div v-else-if="authStore.isAuthenticated" class="grid grid-cols-[250px_1fr_250px] min-h-screen bg-gray-900">
 
     <div class="flex flex-col p-4 bg-gray-800">
       <h2 class="font-bold text-white mb-4">Left Menu</h2>

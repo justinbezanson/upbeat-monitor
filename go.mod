@@ -13,10 +13,10 @@ require (
 )
 
 require (
-	ariga.io/atlas/cmd/atlas v0.13.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/libsql/sqlite-antlr4-parser v0.0.0-20240327125255-dbf53b6cbf06 // indirect
 	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc // indirect
+	golang.org/x/time v0.14.0 // indirect
 )
 
 replace github.com/antlr/antlr4/runtime/Go/antlr/v4 => github.com/antlr4-go/antlr/v4 v4.13.0

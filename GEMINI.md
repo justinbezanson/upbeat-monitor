@@ -6,8 +6,10 @@ This project is a **monorepo**. It contains multiple services/applications withi
 
 The project is **Dockerized**. Development and deployment environments leverage Docker containers.
 
-**Go Environment:**
-Go is installed and used **within the Docker containers** for the backend API. When performing operations that require the Go toolchain (e.g., `go build`, `go test`), these commands should ideally be executed inside the relevant Docker container or by building and running the Docker services.
+**Backend API (Go):**
+- Go is installed and used **within the Docker containers** for development.
+- **Production Hosting:** The backend is designed to be hosted on **AWS Lambda** triggered by **API Gateway**.
+- Infrastructure-level concerns like rate limiting and SSL termination should be handled via AWS WAF or API Gateway configuration in production.
 
 **Frontend Styling:**
 Tailwind CSS v4 is used for styling. Do not use `tailwind.config.js/cjs` files as v4 is configured via CSS imports and the `@theme` directive in `src/style.css`.

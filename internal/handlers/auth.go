@@ -152,6 +152,37 @@ func (h *Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate JWT token for immediate login after registration
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		UserID: newUser.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(h.JWTSecret)
+	if err != nil {
+		log.Printf("Error generating JWT token: %v", err)
+		// We created the user but failed to log them in. 
+		// They can still log in manually.
+		respondWithJSON(w, http.StatusCreated, AuthResponse{Message: "User registered successfully", UserID: newUser.ID})
+		return
+	}
+
+	// Set HttpOnly cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    tokenString,
+		Expires:  expirationTime,
+		HttpOnly: true,
+		Secure:   true, // Always true for production/SSL
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	respondWithJSON(w, http.StatusCreated, AuthResponse{Message: "User registered successfully", UserID: newUser.ID})
 }
 
@@ -198,11 +229,31 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged in successfully", Token: tokenString, UserID: user.ID})
+	// Set HttpOnly cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    tokenString,
+		Expires:  expirationTime,
+		HttpOnly: true,
+		Secure:   true, // Always true for production/SSL
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged in successfully", UserID: user.ID})
 }
 
-// Logout handles user logout. For JWT, this primarily involves client-side token removal.
+// Logout handles user logout by clearing the cookie.
 func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour), // Expire immediately
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	})
 	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged out successfully"})
 }
 

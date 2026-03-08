@@ -41,8 +41,13 @@ const router = createRouter({
 });
 
 // Global navigation guard
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore(); // Access the store inside the guard
+
+  // Wait for auth to initialize if it hasn't yet
+  if (!authStore.isInitialized) {
+    await authStore.initializeAuth();
+  }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login'); // Redirect to login page
