@@ -78,6 +78,6 @@ func RegisterRoutes(db *sql.DB) http.Handler {
 	mux.HandleFunc("/forgot-password", h.ForgotPassword)
 	mux.HandleFunc("/reset-password", h.ResetPassword)
 
-	// Wrap the mux with the CORS middleware
-	return corsMiddleware(mux)
+	// Wrap the mux with the security headers and CORS middleware
+	return SecurityHeadersMiddleware(corsMiddleware(mux))
 }

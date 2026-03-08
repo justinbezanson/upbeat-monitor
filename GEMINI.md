@@ -9,7 +9,8 @@ The project is **Dockerized**. Development and deployment environments leverage 
 **Backend API (Go):**
 - Go is installed and used **within the Docker containers** for development.
 - **Production Hosting:** The backend is designed to be hosted on **AWS Lambda** triggered by **API Gateway**.
-- Infrastructure-level concerns like rate limiting and SSL termination should be handled via AWS WAF or API Gateway configuration in production.
+- **Rate Limiting:** Do **NOT** implement rate limiting in the Go backend. This is handled at the infrastructure level via AWS API Gateway or AWS WAF to optimize for Lambda cold starts and costs.
+- SSL termination and other infrastructure-level concerns are also handled by AWS.
 
 **Frontend Styling:**
 Tailwind CSS v4 is used for styling. Do not use `tailwind.config.js/cjs` files as v4 is configured via CSS imports and the `@theme` directive in `src/style.css`.
