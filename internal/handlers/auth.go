@@ -183,7 +183,7 @@ func (h *Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	respondWithJSON(w, http.StatusCreated, AuthResponse{Message: "User registered successfully", UserID: newUser.ID})
+	respondWithJSON(w, http.StatusCreated, AuthResponse{Message: "User registered successfully", UserID: newUser.ID, Token: tokenString})
 }
 
 // Login handles user login.
@@ -240,7 +240,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged in successfully", UserID: user.ID})
+	respondWithJSON(w, http.StatusOK, AuthResponse{Message: "Logged in successfully", UserID: user.ID, Token: tokenString})
 }
 
 // Logout handles user logout by clearing the cookie.

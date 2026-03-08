@@ -37,7 +37,7 @@ func (h *Handlers) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if tokenString == "" {
-			respondWithError(w, http.StatusUnauthorized, "Authentication required")
+			respondWithError(w, http.StatusUnauthorized, "Authorization header required")
 			return
 		}
 
@@ -46,7 +46,7 @@ func (h *Handlers) AuthMiddleware(next http.Handler) http.Handler {
 		})
 
 		if err != nil {
-			respondWithError(w, http.StatusUnauthorized, "Invalid or expired token")
+			respondWithError(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 

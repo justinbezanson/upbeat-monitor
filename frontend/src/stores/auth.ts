@@ -5,10 +5,9 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const successMessage = ref<string | null>(null);
-  const userToken = ref<string | null>(null); 
+  const userToken = ref<string | null>(localStorage.getItem('userToken')); 
 
-  const _isAuthenticated = ref(false); 
-  const isAuthenticated = computed(() => _isAuthenticated.value);
+  const isAuthenticated = computed(() => !!userToken.value);
   const isInitialized = ref(false); // New flag
 
   const initializeAuth = async () => {
@@ -18,9 +17,14 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'GET',
         credentials: 'include',
       });
-      _isAuthenticated.value = response.ok;
+      
+      if (!response.ok) {
+        userToken.value = null;
+        localStorage.removeItem('userToken');
+      }
     } catch (e) {
-      _isAuthenticated.value = false;
+      userToken.value = null;
+      localStorage.removeItem('userToken');
     } finally {
       isLoading.value = false;
       isInitialized.value = true; // Mark as done
@@ -46,7 +50,10 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (response.ok) {
         successMessage.value = data.message || 'Registration successful!';
-        _isAuthenticated.value = true;
+        if (data.token) {
+          userToken.value = data.token;
+          localStorage.setItem('userToken', data.token);
+        }
         return true;
       } else {
         error.value = data.error || 'Registration failed.';
@@ -78,8 +85,11 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await response.json();
 
       if (response.ok) {
-        _isAuthenticated.value = true;
         successMessage.value = data.message || 'Login successful!';
+        if (data.token) {
+          userToken.value = data.token;
+          localStorage.setItem('userToken', data.token);
+        }
         return true;
       } else {
         error.value = data.error || 'Login failed.';
@@ -110,7 +120,8 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = 'An unexpected error occurred during logout: ' + e.message;
       return false;
     } finally {
-      _isAuthenticated.value = false;
+      userToken.value = null;
+      localStorage.removeItem('userToken');
       isLoading.value = false;
     }
   };
